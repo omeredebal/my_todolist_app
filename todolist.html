@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yapılacaklar Listesi</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        background: #e3f2fd;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .date {
+        font-size: 18px;
+        color: black;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+
+      .container {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 123, 255, 0.2);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        border: 2px solid #90caf9;
+      }
+
+      h1 {
+        font-size: 22px;
+        font-weight: 600;
+        color: #0277bd;
+        margin-bottom: 15px;
+      }
+
+      .input-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid #90caf9;
+        border-radius: 8px;
+        font-size: 16px;
+        outline: none;
+        background: #f1f8ff;
+        color: #0277bd;
+      }
+
+      input[type="text"]::placeholder {
+        color: #6a9bbf;
+      }
+
+      button {
+        padding: 10px 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: 0.3s;
+      }
+
+      .add-btn {
+        background: lightblue;
+        color: white;
+        font-weight: bold;
+        border: 4px solid lightblue;
+        background-color: white;
+      }
+
+      .add-btn:hover {
+        background: lightgrey;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      li {
+        background: #f1f8ff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        margin: 6px 0;
+        border-radius: 8px;
+        transition: 0.3s;
+        cursor: pointer;
+        border: 1px solid #90caf9;
+      }
+
+      li:hover {
+        background: #e3f2fd;
+        transform: scale(1.02);
+      }
+
+      input[type="checkbox"] {
+        transform: scale(1.2);
+        cursor: pointer;
+        accent-color: #0277bd;
+      }
+
+      label {
+        flex: 1;
+        margin-left: 10px;
+        font-size: 16px;
+        transition: 0.3s;
+        color: #0277bd;
+      }
+
+      .completed {
+        text-decoration: line-through;
+        color: #01579b;
+        font-weight: bold;
+      }
+
+      .delete-btn {
+        background: transparent;
+        color: #0277bd;
+        padding: 6px 10px;
+        border-radius: 50%;
+        border: 2px solid #0277bd;
+        font-size: 14px;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .delete-btn:hover {
+        background: #0277bd;
+        color: white;
+      }
+
+      /* Yatay İlerleme Çubuğu */
+      .progress-container {
+        width: 100%;
+        max-width: 400px;
+        height: 20px;
+        background: #f1f8ff;
+        border-radius: 10px;
+        border: 2px solid #90caf9;
+        margin-top: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(45deg, #0277bd, #039be5);
+        transition: width 0.5s ease-in-out;
+      }
+
+      .progress-text {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: bold;
+        color: #01579b;
+      }
+
+      .congrats {
+        font-size: 18px;
+        font-weight: bold;
+        color: #0277bd;
+        margin-top: 15px;
+        display: none;
+        animation: fadeIn 1s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Güncel Tarih -->
+    <div class="date" id="currentDate"></div>
+
+    <!-- Görev Listesi -->
+    <div class="container">
+      <h1>✅ Yapılacaklar Listesi</h1>
+      <div class="input-container">
+        <input type="text" id="taskInput" placeholder="Yeni görev ekle..." />
+        <button class="add-btn" onclick="addTask()">➕</button>
+      </div>
+      <div id="taskList"></div>
+      <p class="congrats" id="congratsMessage">
+        🎉 Tebrikler! Tüm görevleri tamamladınız! 🎉
+      </p>
+    </div>
+
+    <!-- Yatay İlerleme Çubuğu -->
+    <div class="progress-container">
+      <div class="progress-bar"></div>
+      <div class="progress-text">0%</div>
+    </div>
+
+    <script>
+      let tasks = ["Kahvaltı yap", "Ders çalış", "Spor yap", "Kitap oku"];
+      let completedTasks = 0;
+
+      function renderTasks() {
+        let listHtml = "<ul>";
+        for (let i = 0; i < tasks.length; i++) {
+          listHtml += `
+          <li>
+            <input type="checkbox" id="task${i}" onclick="toggleComplete(${i})">
+            <label for="task${i}">${tasks[i]}</label>
+            <button class="delete-btn" onclick="deleteTask(${i})">❌</button>
+          </li>
+        `;
+        }
+        listHtml += "</ul>";
+        document.getElementById("taskList").innerHTML = listHtml;
+        updateProgress();
+      }
+
+      function addTask() {
+        let input = document.getElementById("taskInput");
+        let newTask = input.value.trim();
+
+        if (newTask !== "") {
+          tasks.push(newTask);
+          input.value = "";
+          renderTasks();
+        }
+      }
+
+      function deleteTask(index) {
+        tasks.splice(index, 1);
+        renderTasks();
+      }
+
+      function toggleComplete(index) {
+        let label = document.querySelector(`#task${index} + label`);
+        let checkbox = document.getElementById(`task${index}`);
+
+        checkbox.checked
+          ? (label.classList.add("completed"), completedTasks++)
+          : (label.classList.remove("completed"), completedTasks--);
+        updateProgress();
+      }
+
+      function updateProgress() {
+        let progress =
+          tasks.length === 0 ? 0 : (completedTasks / tasks.length) * 100;
+        document.querySelector(".progress-bar").style.width = `${progress}%`;
+        document.querySelector(".progress-text").textContent = `${Math.round(
+          progress
+        )}%`;
+        document.getElementById("congratsMessage").style.display =
+          progress === 100 ? "block" : "none";
+      }
+
+      document.getElementById("currentDate").textContent =
+        new Date().toLocaleDateString("tr-TR");
+      renderTasks();
+    </script>
+  </body>
+</html>
