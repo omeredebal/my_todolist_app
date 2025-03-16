@@ -202,6 +202,84 @@
           opacity: 1;
         }
       }
+
+      /* Reset Butonu Stili */
+      .reset-button {
+        background-color: #ff4444;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+        width: 100%;
+      }
+
+      .reset-button:hover {
+        background-color: #cc0000;
+      }
+
+      /* Mobil Responsive Tasarım */
+      @media screen and (max-width: 480px) {
+        body {
+          padding: 10px;
+          height: auto;
+          min-height: 100vh;
+        }
+
+        .container {
+          max-width: 100%;
+          padding: 15px;
+        }
+
+        h1 {
+          font-size: 20px;
+        }
+
+        input[type="text"] {
+          font-size: 14px;
+          padding: 8px;
+        }
+
+        .add-btn {
+          padding: 8px 12px;
+          font-size: 14px;
+        }
+
+        li {
+          padding: 8px;
+          font-size: 14px;
+        }
+
+        .delete-btn {
+          padding: 4px 8px;
+          font-size: 12px;
+        }
+
+        .progress-container {
+          max-width: 100%;
+          height: 16px;
+        }
+
+        .progress-text {
+          font-size: 12px;
+        }
+
+        .congrats {
+          font-size: 16px;
+        }
+
+        .date {
+          font-size: 16px;
+        }
+      }
+
+      /* Orta Boy Ekranlar İçin */
+      @media screen and (min-width: 481px) and (max-width: 768px) {
+        .container {
+          max-width: 90%;
+        }
+      }
     </style>
   </head>
   <body>
@@ -216,14 +294,15 @@
           type="text"
           id="taskInput"
           placeholder="Yeni görev ekle..."
-          onkeydown="checkEnter(event)"
+          onkeydown="enterKontrol(event)"
         />
-        <button class="add-btn" onclick="addTask()">➕</button>
+        <button class="add-btn" onclick="gorevEkle()">➕</button>
       </div>
       <div id="taskList"></div>
       <p class="congrats" id="congratsMessage">
         🎉 Tebrikler! Tüm görevleri tamamladınız! 🎉
       </p>
+      <button class="reset-button" id="resetButton">Sıfırla</button>
     </div>
 
     <!-- Yatay İlerleme Çubuğu -->
@@ -233,72 +312,116 @@
     </div>
 
     <script>
-      let tasks = ["Kahvaltı yap", "Ders çalış", "Spor yap", "Kitap oku"];
-      let completedTasks = 0;
+      // Ana değişkenler
+      let gorevler = [];
+      let tamamlananGorevSayisi = 0;
+      let gorevDurumlari = []; // Her görevin tamamlanma durumunu tutar
 
-      function renderTasks() {
-        let listHtml = "<ul>";
-        for (let i = 0; i < tasks.length; i++) {
-          listHtml += `
+      // Görevleri ekrana yazdırma
+      function gorevleriGoster() {
+        let listeHTML = "<ul>";
+        for (let i = 0; i < gorevler.length; i++) {
+          const tikliMi = gorevDurumlari[i] ? "checked" : "";
+          const tamamlandiMi = gorevDurumlari[i] ? "completed" : "";
+          listeHTML += `
           <li>
-            <input type="checkbox" id="task${i}" onclick="toggleComplete(${i})">
-            <label for="task${i}">${tasks[i]}</label>
-            <button class="delete-btn" onclick="deleteTask(${i})">❌</button>
+            <input type="checkbox" id="gorev${i}" onclick="gorevDurumunuDegistir(${i})" ${tikliMi}>
+            <label for="gorev${i}" class="${tamamlandiMi}">${gorevler[i]}</label>
+            <button class="delete-btn" onclick="gorevSil(${i})">❌</button>
           </li>
         `;
         }
-        listHtml += "</ul>";
-        document.getElementById("taskList").innerHTML = listHtml;
-        updateProgress();
+        listeHTML += "</ul>";
+        document.getElementById("taskList").innerHTML = listeHTML;
+        ilerlemeGuncelle();
       }
 
-      function addTask() {
+      // Yeni görev ekleme
+      function gorevEkle() {
         let input = document.getElementById("taskInput");
-        let newTask = input.value.trim();
+        let yeniGorev = input.value.trim();
 
-        if (newTask !== "") {
-          tasks.push(newTask);
+        if (yeniGorev !== "") {
+          gorevler.push(yeniGorev);
+          gorevDurumlari.push(false); // Yeni görev başlangıçta tamamlanmamış durumda
           input.value = "";
-          renderTasks();
+          gorevleriGoster();
         }
       }
 
-      function deleteTask(index) {
-        tasks.splice(index, 1);
-        renderTasks();
+      // Görev durumunu değiştirme (tamamlandı/tamamlanmadı)
+      function gorevDurumunuDegistir(index) {
+        let etiket = document.querySelector(`#gorev${index} + label`);
+        let checkbox = document.getElementById(`gorev${index}`);
+
+        gorevDurumlari[index] = checkbox.checked;
+
+        if (checkbox.checked) {
+          etiket.classList.add("completed");
+          tamamlananGorevSayisi = Math.min(
+            tamamlananGorevSayisi + 1,
+            gorevler.length
+          );
+        } else {
+          etiket.classList.remove("completed");
+          tamamlananGorevSayisi = Math.max(tamamlananGorevSayisi - 1, 0);
+        }
+        ilerlemeGuncelle();
       }
 
-      function toggleComplete(index) {
-        let label = document.querySelector(`#task${index} + label`);
-        let checkbox = document.getElementById(`task${index}`);
-
-        checkbox.checked
-          ? (label.classList.add("completed"), completedTasks++)
-          : (label.classList.remove("completed"), completedTasks--);
-        updateProgress();
+      // Görev silme
+      function gorevSil(index) {
+        gorevler.splice(index, 1);
+        gorevDurumlari.splice(index, 1);
+        tamamlananGorevSayisi = gorevDurumlari.filter((durum) => durum).length;
+        gorevleriGoster();
       }
 
-      function updateProgress() {
-        let progress =
-          tasks.length === 0 ? 0 : (completedTasks / tasks.length) * 100;
-        document.querySelector(".progress-bar").style.width = `${progress}%`;
-        document.querySelector(".progress-text").textContent = `${Math.round(
-          progress
-        )}%`;
+      // Tüm görevleri sıfırlama
+      function gorevleriSifirla() {
+        const onay = confirm(
+          "Tüm görevleri silmek istediğinizden emin misiniz?"
+        );
+        if (onay) {
+          gorevler = [];
+          gorevDurumlari = [];
+          tamamlananGorevSayisi = 0;
+          gorevleriGoster();
+        }
+      }
+
+      // İlerleme çubuğunu güncelleme
+      function ilerlemeGuncelle() {
+        let ilerleme =
+          gorevler.length === 0
+            ? 0
+            : (tamamlananGorevSayisi / gorevler.length) * 100;
+        ilerleme = Math.min(100, ilerleme);
+
+        document.querySelector(".progress-bar").style.width = `${ilerleme}%`;
+        document.querySelector(".progress-text").textContent = `%${Math.round(
+          ilerleme
+        )}`;
         document.getElementById("congratsMessage").style.display =
-          progress === 100 ? "block" : "none";
+          ilerleme === 100 ? "block" : "none";
       }
 
-      // Enter tuşuna basıldığında görev ekle
-      function checkEnter(event) {
+      // Enter tuşu kontrolü
+      function enterKontrol(event) {
         if (event.key === "Enter") {
-          addTask();
+          gorevEkle();
         }
       }
 
-      document.getElementById("currentDate").textContent =
-        new Date().toLocaleDateString("tr-TR");
-      renderTasks();
+      // Sayfa yüklendiğinde çalışacak kodlar
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .getElementById("resetButton")
+          .addEventListener("click", gorevleriSifirla);
+        document.getElementById("currentDate").textContent =
+          new Date().toLocaleDateString("tr-TR");
+        gorevleriGoster();
+      });
     </script>
   </body>
 </html>
