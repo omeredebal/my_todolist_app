@@ -212,7 +212,12 @@
     <div class="container">
       <h1>✅ Yapılacaklar Listesi</h1>
       <div class="input-container">
-        <input type="text" id="taskInput" placeholder="Yeni görev ekle..." />
+        <input
+          type="text"
+          id="taskInput"
+          placeholder="Yeni görev ekle..."
+          onkeydown="checkEnter(event)"
+        />
         <button class="add-btn" onclick="addTask()">➕</button>
       </div>
       <div id="taskList"></div>
@@ -282,6 +287,13 @@
         )}%`;
         document.getElementById("congratsMessage").style.display =
           progress === 100 ? "block" : "none";
+      }
+
+      // Enter tuşuna basıldığında görev ekle
+      function checkEnter(event) {
+        if (event.key === "Enter") {
+          addTask();
+        }
       }
 
       document.getElementById("currentDate").textContent =
